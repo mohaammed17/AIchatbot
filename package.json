@@ -3,15 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev -p 3000 -H 0.0.0.0",
-  "build": "next build",
-  "start": "next start -p 3000 -H 0.0.0.0"
-},
+    "dev": "next dev -p 3000 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 3000 -H 0.0.0.0"
+  },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.624.0",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
+    "aws-sdk": "^2.1672.0",
+    "axios": "^1.7.3",
     "next": "14.2.5",
     "openai": "^4.55.3",
     "react": "^18",

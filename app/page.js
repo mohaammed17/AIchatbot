@@ -13,7 +13,7 @@ export default function Home({ toggleMode, mode }) {
   ]);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false); // New state for typing indicator
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -24,16 +24,34 @@ export default function Home({ toggleMode, mode }) {
     scrollToBottom();
   }, [messages]);
 
+  const formatMessage = (content) => {
+    // Convert markdown-style bold (**text**) to HTML bold (<strong>text</strong>)
+    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Convert lines starting with '-' to bullet points
+    content = content.replace(/^- (.*$)/gim, '<li>$1</li>');
+
+    // Wrap the entire content in a <ul> if bullet points are present
+    if (content.includes('<li>')) {
+      content = `<ul>${content}</ul>`;
+    }
+
+    // Convert newlines to <br> for proper line breaks in HTML
+    content = content.replace(/\n/g, '<br>');
+
+    return content;
+  };
+
   const sendMessage = async () => {
     if (!message.trim() || isLoading) return;
     setIsLoading(true);
-    setIsTyping(true); // Show typing indicator
+    setIsTyping(true);
 
     const newMessages = [
       ...messages,
       { role: 'user', content: message },
-      { role: 'assistant', content: '' },
     ];
+
     setMessages(newMessages);
     setMessage('');
 
@@ -43,29 +61,20 @@ export default function Home({ toggleMode, mode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([...messages, { role: 'user', content: message }]),
+        body: JSON.stringify([{ role: 'user', content: message }]),
       });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const responseData = await response.json();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const text = decoder.decode(value, { stream: true });
-        setMessages((messages) => {
-          let lastMessage = messages[messages.length - 1];
-          let otherMessages = messages.slice(0, messages.length - 1);
-          return [
-            ...otherMessages,
-            { ...lastMessage, content: lastMessage.content + text },
-          ];
-        });
-      }
+      // Add the assistant's formatted response to the conversation history
+      setMessages((messages) => [
+        ...messages,
+        { role: 'assistant', content: formatMessage(responseData.text) },
+      ]);
     } catch (error) {
       console.error('Error:', error);
       setMessages((messages) => [
@@ -74,7 +83,7 @@ export default function Home({ toggleMode, mode }) {
       ]);
     } finally {
       setIsLoading(false);
-      setIsTyping(false); // Hide typing indicator after response
+      setIsTyping(false);
     }
   };
 
@@ -148,7 +157,7 @@ export default function Home({ toggleMode, mode }) {
               justifyContent={
                 message.role === 'assistant' ? 'flex-start' : 'flex-end'
               }
-              className="message-bubble" // Apply the animation
+              className="message-bubble" 
             >
               <Box
                 bgcolor={
@@ -163,12 +172,10 @@ export default function Home({ toggleMode, mode }) {
                 sx={{
                   color: mode === 'light' ? '#FFFFFF' : '#EEEEEE',
                 }}
-              >
-                {message.content}
-              </Box>
+                dangerouslySetInnerHTML={{ __html: message.content }} // Render the formatted message
+              />
             </Box>
           ))}
-          {/* Typing indicator */}
           {isTyping && (
             <Box display="flex" justifyContent="flex-start" p={2}>
               <CircularProgress size={24} color="inherit" />
