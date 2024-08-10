@@ -3,6 +3,9 @@
 import { Box, Stack, TextField, Button, IconButton, CircularProgress } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
+import userAvatar from '../assets/user-avatar.png'; // Ensure this path is correct
+import assistantAvatar from '../assets/assistant-avatar.png'; // Ensure this path is correct
 
 export default function Home({ toggleMode, mode }) {
   const [messages, setMessages] = useState([
@@ -25,20 +28,12 @@ export default function Home({ toggleMode, mode }) {
   }, [messages]);
 
   const formatMessage = (content) => {
-    // Convert markdown-style bold (**text**) to HTML bold (<strong>text</strong>)
     content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // Convert lines starting with '-' to bullet points
     content = content.replace(/^- (.*$)/gim, '<li>$1</li>');
-
-    // Wrap the entire content in a <ul> if bullet points are present
     if (content.includes('<li>')) {
       content = `<ul>${content}</ul>`;
     }
-
-    // Convert newlines to <br> for proper line breaks in HTML
     content = content.replace(/\n/g, '<br>');
-
     return content;
   };
 
@@ -70,7 +65,6 @@ export default function Home({ toggleMode, mode }) {
 
       const responseData = await response.json();
 
-      // Add the assistant's formatted response to the conversation history
       setMessages((messages) => [
         ...messages,
         { role: 'assistant', content: formatMessage(responseData.text) },
@@ -100,11 +94,11 @@ export default function Home({ toggleMode, mode }) {
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      bgcolor={mode === 'light' ? 'white' : '#333'}
-      color={mode === 'light' ? 'black' : 'white'}
       width="100vw"
       height="100vh"
       sx={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1668681919287-7367677cdc4c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`, // Background image
+        backgroundSize: 'cover',
         transition: 'background-color 0.3s, color 0.3s',
       }}
     >
@@ -117,7 +111,7 @@ export default function Home({ toggleMode, mode }) {
         borderRadius={8}
         p={2}
         spacing={3}
-        bgcolor={mode === 'light' ? 'white' : '#333'}
+        bgcolor={mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(51, 51, 51, 0.8)'} // More transparency
         boxShadow="0px 4px 12px rgba(0, 0, 0, 0.1)"
         sx={{
           transition: 'background-color 0.3s, color 0.3s, border-color 0.3s',
@@ -159,11 +153,16 @@ export default function Home({ toggleMode, mode }) {
               }
               className="message-bubble" 
             >
+              {message.role === 'assistant' ? (
+                <Image src={assistantAvatar} alt="Assistant Avatar" width={40} height={40} style={{ borderRadius: '50%', marginRight: 10 }} />
+              ) : (
+                <Image src={userAvatar} alt="User Avatar" width={40} height={40} style={{ borderRadius: '50%', marginLeft: 10 }} />
+              )}
               <Box
                 bgcolor={
                   message.role === 'assistant'
-                    ? mode === 'light' ? '#1976d2' : '#42a5f5'
-                    : mode === 'light' ? '#dc004e' : '#f48fb1'
+                    ? mode === 'light' ? '#6a1b9a' : '#8e24aa'
+                    : mode === 'light' ? '#26c6da' : '#26a69a'
                 }
                 color="white"
                 borderRadius={16}
@@ -172,7 +171,7 @@ export default function Home({ toggleMode, mode }) {
                 sx={{
                   color: mode === 'light' ? '#FFFFFF' : '#EEEEEE',
                 }}
-                dangerouslySetInnerHTML={{ __html: message.content }} // Render the formatted message
+                dangerouslySetInnerHTML={{ __html: message.content }}
               />
             </Box>
           ))}
